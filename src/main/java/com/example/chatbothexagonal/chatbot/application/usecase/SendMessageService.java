@@ -17,7 +17,9 @@ import java.util.UUID;
 @Service
 @Transactional
 public class SendMessageService implements SendMessageUseCase {
+
     private final LoadSessionPort loadSessionPort;
+    private final SaveSessionPort saveSessionPort;
     private final SaveMessagePort saveMessagePort;
     private final LoadHistoryPort loadHistoryPort;
     private final ChatbotInternalPort internalPort;
@@ -25,12 +27,14 @@ public class SendMessageService implements SendMessageUseCase {
 
     public SendMessageService(
             LoadSessionPort loadSessionPort,
+            SaveSessionPort saveSessionPort,
             SaveMessagePort saveMessagePort,
             LoadHistoryPort loadHistoryPort,
             ChatbotInternalPort internalPort,
             ChatbotExternalN8nPort n8nPort
     ) {
         this.loadSessionPort = loadSessionPort;
+        this.saveSessionPort = saveSessionPort;
         this.saveMessagePort = saveMessagePort;
         this.loadHistoryPort = loadHistoryPort;
         this.internalPort = internalPort;
@@ -39,8 +43,9 @@ public class SendMessageService implements SendMessageUseCase {
 
     @Override
     public ChatMessageResponse sendMessage(ChatMessageRequest request) {
+
         ChatSession session = loadSessionPort.loadBySessionKey(request.getSessionKey())
-                .orElseThrow(() -> new ChatSessionNotFoundException(request.getSessionKey()));
+                .orElseGet(() -> createNewSession(request.getSessionKey()));
 
         SessionId sessionId = session.getId();
 
@@ -50,7 +55,7 @@ public class SendMessageService implements SendMessageUseCase {
                 MessageRole.USER,
                 request.getMessageText(),
                 null,
-                ChatbotModel.UNKNOWN,
+                session.getActiveModel(),
                 LocalDateTime.now()
         );
         saveMessagePort.save(msgUser);
@@ -77,5 +82,17 @@ public class SendMessageService implements SendMessageUseCase {
                 session.getActiveModel(),
                 msgAssistant.getCreatedAt()
         );
+    }
+
+    private ChatSession createNewSession(String sessionKey) {
+        ChatSession newSession = new ChatSession(
+                new SessionId(UUID.randomUUID()),
+                sessionKey,
+                ChatbotModel.INTERNAL_AI,
+                LocalDateTime.now()
+        );
+
+        saveSessionPort.save(newSession);
+        return newSession;
     }
 }
