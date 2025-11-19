@@ -1,0 +1,56 @@
+package com.example.chatbothexagonal.chatbot.infraestructure.out.adapter;
+
+import com.example.chatbothexagonal.chatbot.application.port.out.LoadHistoryPort;
+import com.example.chatbothexagonal.chatbot.application.port.out.LoadSessionPort;
+import com.example.chatbothexagonal.chatbot.application.port.out.SaveMessagePort;
+import com.example.chatbothexagonal.chatbot.application.port.out.SaveSessionPort;
+import com.example.chatbothexagonal.chatbot.domain.model.ChatMessage;
+import com.example.chatbothexagonal.chatbot.domain.model.ChatSession;
+import com.example.chatbothexagonal.chatbot.domain.valueobject.SessionId;
+import com.example.chatbothexagonal.chatbot.infraestructure.out.mapper.ChatbotEntityMapper;
+import com.example.chatbothexagonal.chatbot.infraestructure.out.repository.ChatMessageRepository;
+import com.example.chatbothexagonal.chatbot.infraestructure.out.repository.ChatSessionRepository;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+
+@Component
+public class ChatbotPersistenceAdapter implements
+        LoadSessionPort,
+        SaveSessionPort,
+        SaveMessagePort,
+        LoadHistoryPort {
+
+    private final ChatSessionRepository sessionRepo;
+    private final ChatMessageRepository messageRepo;
+
+    public ChatbotPersistenceAdapter(ChatSessionRepository sessionRepo, ChatMessageRepository messageRepo) {
+        this.sessionRepo = sessionRepo;
+        this.messageRepo = messageRepo;
+    }
+
+    @Override
+    public Optional<ChatSession> loadBySessionKey(String key) {
+        return sessionRepo.findBySessionKey(key)
+                .map(ChatbotEntityMapper::toDomain);
+    }
+
+    @Override
+    public void save(ChatSession session) {
+        sessionRepo.save(ChatbotEntityMapper.toEntity(session));
+    }
+
+    @Override
+    public void save(ChatMessage msg) {
+        messageRepo.save(ChatbotEntityMapper.toEntity(msg));
+    }
+
+    @Override
+    public List<ChatMessage> loadBySessionId(SessionId sessionId) {
+        return messageRepo.findBySessionIdOrderByCreatedAtAsc(sessionId.getValue())
+                .stream()
+                .map(ChatbotEntityMapper::toDomain)
+                .toList();
+    }
+}

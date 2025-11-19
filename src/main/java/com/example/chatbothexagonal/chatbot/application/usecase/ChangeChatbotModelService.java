@@ -1,19 +1,15 @@
 package com.example.chatbothexagonal.chatbot.application.usecase;
 
 import com.example.chatbothexagonal.chatbot.application.dto.ChangeModelRequest;
-import com.example.chatbothexagonal.chatbot.application.dto.ChatMessageRequest;
-import com.example.chatbothexagonal.chatbot.application.dto.ChatMessageResponse;
 import com.example.chatbothexagonal.chatbot.application.port.in.ChangeChatbotModelUseCase;
-import com.example.chatbothexagonal.chatbot.application.port.in.SendMessageUseCase;
 import com.example.chatbothexagonal.chatbot.application.port.out.*;
 import com.example.chatbothexagonal.chatbot.domain.exception.ChatSessionNotFoundException;
 import com.example.chatbothexagonal.chatbot.domain.model.*;
-import com.example.chatbothexagonal.chatbot.domain.valueobject.MessageId;
-import com.example.chatbothexagonal.chatbot.domain.valueobject.SessionId;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
+@Service
+@Transactional
 public class ChangeChatbotModelService  implements ChangeChatbotModelUseCase {
 
     private final LoadSessionPort loadSessionPort;
