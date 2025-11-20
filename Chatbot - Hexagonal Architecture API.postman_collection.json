@@ -1,0 +1,255 @@
+{
+	"info": {
+		"_postman_id": "0d9f2b9f-b993-4e39-a4da-17df9696020c",
+		"name": "Chatbot - Hexagonal Architecture API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "35284580"
+	},
+	"item": [
+		{
+			"name": "Send Message (Internal AI)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"sessionKey\": \"user-session-123\",\n  \"messageText\": \"Hola, ¿cuál es el producto más caro?\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chatbot/send",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"chatbot",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Send Message (List products)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"sessionKey\": \"user-session-123\",\n  \"messageText\": \"Dame la lista de productos\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chatbot/send",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"chatbot",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Send Message (N8N Model)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"sessionKey\": \"user-session-123\",\n  \"messageText\": \"Hola desde el modelo N8N\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chatbot/send",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"chatbot",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change Model → INTERNAL_AI",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"sessionKey\": \"user-session-123\",\n  \"newModel\": \"INTERNAL_AI\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chatbot/change-model",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"chatbot",
+						"change-model"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change Model → N8N",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"sessionKey\": \"user-session-123\",\n  \"newModel\": \"N8N\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chatbot/change-model",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"chatbot",
+						"change-model"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Send Message (History Memory Test)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"sessionKey\": \"memory-session-001\",\n  \"messageText\": \"Recordarás esto?\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chatbot/send",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"chatbot",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get History Session",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"sessionKey\": \"user-session-123\",\n  \"messageText\": \"Dame la lista de productos\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chatbot/history/memory-session-001",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"chatbot",
+						"history",
+						"memory-session-001"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "sessionKey",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
