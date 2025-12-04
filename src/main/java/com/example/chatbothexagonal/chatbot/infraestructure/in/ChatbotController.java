@@ -40,7 +40,7 @@ public class ChatbotController {
     @PostMapping("/send")
     public ChatMessageResponse sendMessage(@Valid @RequestBody ChatMessageRequestDTO dto) {
         ChatMessageRequest request =
-                new ChatMessageRequest(dto.getSessionKey(), dto.getMessageText());
+                new ChatMessageRequest(dto.getSessionKey(), dto.getMessageText(), dto.getBranchId());
         return sendMessageUseCase.sendMessage(request);
     }
 

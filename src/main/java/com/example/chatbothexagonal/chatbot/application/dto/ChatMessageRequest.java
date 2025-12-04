@@ -4,9 +4,12 @@ public class ChatMessageRequest {
     private final String sessionKey;
     private final String messageText;
 
-    public ChatMessageRequest(String sessionKey, String messageText) {
+    private final String branchId;
+
+    public ChatMessageRequest(String sessionKey, String messageText, String branchId) {
         this.sessionKey = sessionKey;
         this.messageText = messageText;
+        this.branchId = branchId;
     }
 
     public String getSessionKey() {
@@ -15,5 +18,8 @@ public class ChatMessageRequest {
 
     public String getMessageText() {
         return messageText;
+    }
+    public String getBranchId() {
+        return branchId;
     }
 }
