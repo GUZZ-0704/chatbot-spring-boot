@@ -12,6 +12,7 @@ public class ChatbotEntityMapper {
     public static ChatSession toDomain(ChatSessionEntity e) {
         return new ChatSession(
                 new SessionId(e.getId()),
+                e.getUserId(),
                 e.getSessionKey(),
                 e.getActiveModel(),
                 e.getCreatedAt()
@@ -21,6 +22,7 @@ public class ChatbotEntityMapper {
     public static ChatSessionEntity toEntity(ChatSession session) {
         return new ChatSessionEntity(
                 session.getId().getValue(),
+                session.getUserId(),
                 session.getSessionKey(),
                 session.getActiveModel(),
                 session.getCreatedAt()

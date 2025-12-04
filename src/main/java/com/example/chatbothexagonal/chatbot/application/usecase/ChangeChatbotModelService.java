@@ -2,9 +2,10 @@ package com.example.chatbothexagonal.chatbot.application.usecase;
 
 import com.example.chatbothexagonal.chatbot.application.dto.ChangeModelRequest;
 import com.example.chatbothexagonal.chatbot.application.port.in.ChangeChatbotModelUseCase;
-import com.example.chatbothexagonal.chatbot.application.port.out.*;
+import com.example.chatbothexagonal.chatbot.application.port.out.LoadSessionPort;
+import com.example.chatbothexagonal.chatbot.application.port.out.SaveSessionPort;
 import com.example.chatbothexagonal.chatbot.domain.exception.ChatSessionNotFoundException;
-import com.example.chatbothexagonal.chatbot.domain.model.*;
+import com.example.chatbothexagonal.chatbot.domain.model.ChatSession;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

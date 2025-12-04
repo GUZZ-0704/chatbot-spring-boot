@@ -4,10 +4,9 @@ package com.example.chatbothexagonal.chatbot.infraestructure.in;
 import com.example.chatbothexagonal.chatbot.application.dto.ChangeModelRequest;
 import com.example.chatbothexagonal.chatbot.application.dto.ChatMessageRequest;
 import com.example.chatbothexagonal.chatbot.application.dto.ChatMessageResponse;
-import com.example.chatbothexagonal.chatbot.application.port.in.ChangeChatbotModelUseCase;
-import com.example.chatbothexagonal.chatbot.application.port.in.GetHistoryUseCase;
-import com.example.chatbothexagonal.chatbot.application.port.in.SendMessageUseCase;
+import com.example.chatbothexagonal.chatbot.application.port.in.*;
 import com.example.chatbothexagonal.chatbot.domain.model.ChatMessage;
+import com.example.chatbothexagonal.chatbot.domain.model.ChatSession;
 import com.example.chatbothexagonal.chatbot.infraestructure.in.dto.ChangeModelRequestDTO;
 import com.example.chatbothexagonal.chatbot.infraestructure.in.dto.ChatMessageRequestDTO;
 import jakarta.validation.Valid;
@@ -21,15 +20,21 @@ public class ChatbotController {
     private final SendMessageUseCase sendMessageUseCase;
     private final GetHistoryUseCase getHistoryUseCase;
     private final ChangeChatbotModelUseCase changeModelUseCase;
+    private final GetUserSessionsUseCase getUserSessionsUseCase;
+    private final DeleteUserSessionsUseCase deleteUserSessionsUseCase;
 
     public ChatbotController(
             SendMessageUseCase sendMessageUseCase,
             GetHistoryUseCase getHistoryUseCase,
-            ChangeChatbotModelUseCase changeModelUseCase
+            ChangeChatbotModelUseCase changeModelUseCase,
+            GetUserSessionsUseCase getUserSessionsUseCase,
+            DeleteUserSessionsUseCase deleteUserSessionsUseCase
     ) {
         this.sendMessageUseCase = sendMessageUseCase;
         this.getHistoryUseCase = getHistoryUseCase;
         this.changeModelUseCase = changeModelUseCase;
+        this.getUserSessionsUseCase = getUserSessionsUseCase;
+        this.deleteUserSessionsUseCase = deleteUserSessionsUseCase;
     }
 
     @PostMapping("/send")
@@ -49,4 +54,15 @@ public class ChatbotController {
         ChangeModelRequest req = new ChangeModelRequest(dto.getSessionKey(), dto.getNewModel());
         changeModelUseCase.changeModel(req);
     }
+
+    @GetMapping("/sessions")
+    public List<ChatSession> getMySessions() {
+        return getUserSessionsUseCase.handle();
+    }
+
+    @DeleteMapping("/sessions")
+    public void deleteMySessions() {
+        deleteUserSessionsUseCase.handle();
+    }
+
 }

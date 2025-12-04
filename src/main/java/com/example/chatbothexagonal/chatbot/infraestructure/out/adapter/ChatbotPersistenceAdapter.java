@@ -1,9 +1,6 @@
 package com.example.chatbothexagonal.chatbot.infraestructure.out.adapter;
 
-import com.example.chatbothexagonal.chatbot.application.port.out.LoadHistoryPort;
-import com.example.chatbothexagonal.chatbot.application.port.out.LoadSessionPort;
-import com.example.chatbothexagonal.chatbot.application.port.out.SaveMessagePort;
-import com.example.chatbothexagonal.chatbot.application.port.out.SaveSessionPort;
+import com.example.chatbothexagonal.chatbot.application.port.out.*;
 import com.example.chatbothexagonal.chatbot.domain.model.ChatMessage;
 import com.example.chatbothexagonal.chatbot.domain.model.ChatSession;
 import com.example.chatbothexagonal.chatbot.domain.valueobject.SessionId;
@@ -20,7 +17,9 @@ public class ChatbotPersistenceAdapter implements
         LoadSessionPort,
         SaveSessionPort,
         SaveMessagePort,
-        LoadHistoryPort {
+        LoadHistoryPort,
+        LoadUserSessionsPort,
+        DeleteUserSessionsPort {
 
     private final ChatSessionRepository sessionRepo;
     private final ChatMessageRepository messageRepo;
@@ -34,6 +33,18 @@ public class ChatbotPersistenceAdapter implements
     public Optional<ChatSession> loadBySessionKey(String key) {
         return sessionRepo.findBySessionKey(key)
                 .map(ChatbotEntityMapper::toDomain);
+    }
+
+    @Override
+    public List<ChatSession> loadSessionsByUserId(Long userId) {
+        return sessionRepo.findByUserId(userId).stream()
+                .map(ChatbotEntityMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public void deleteSessionsByUserId(Long userId) {
+        sessionRepo.deleteByUserId(userId);
     }
 
     @Override

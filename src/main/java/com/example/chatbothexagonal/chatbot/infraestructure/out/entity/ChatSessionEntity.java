@@ -13,6 +13,9 @@ public class ChatSessionEntity {
     @Id
     private UUID id;
 
+    @Column(nullable = true)
+    private Long userId;
+
     @Column(nullable = false, unique = true)
     private String sessionKey;
 
@@ -23,14 +26,17 @@ public class ChatSessionEntity {
 
     protected ChatSessionEntity() {}
 
-    public ChatSessionEntity(UUID id, String sessionKey, ChatbotModel activeModel, LocalDateTime createdAt) {
+    public ChatSessionEntity(UUID id, Long userId, String sessionKey,
+                             ChatbotModel activeModel, LocalDateTime createdAt) {
         this.id = id;
+        this.userId = userId;
         this.sessionKey = sessionKey;
         this.activeModel = activeModel;
         this.createdAt = createdAt;
     }
 
     public UUID getId() { return id; }
+    public Long getUserId() { return userId; }
     public String getSessionKey() { return sessionKey; }
     public ChatbotModel getActiveModel() { return activeModel; }
     public LocalDateTime getCreatedAt() { return createdAt; }
