@@ -121,11 +121,17 @@ public class SendMessageService implements SendMessageUseCase {
 
     private String handleSearchProduct(ChatSession session, ChatMessageRequest req) {
 
+        // ⭐ EXTRAEMOS SOLO EL PRODUCTO usando IA
+        String keyword = extractProductKeywordAI(req.getMessageText(), req.getSessionKey());
+        if (keyword.equalsIgnoreCase("NONE")) {
+            return "No entendí qué producto estás buscando. ¿Puedes decirlo nuevamente?";
+        }
+
         UUID branchId = UUID.fromString(req.getBranchId());
 
-        List<ProductResponseDTO> products = inventoryExternalPort.searchProducts(req.getMessageText());
+        List<ProductResponseDTO> products = inventoryExternalPort.searchProducts(keyword);
         if (products.isEmpty()) {
-            return "No encontré productos con ese nombre o SKU.";
+            return "No encontré productos relacionados a: " + keyword;
         }
 
         ProductResponseDTO product = products.get(0);
@@ -267,6 +273,8 @@ public class SendMessageService implements SendMessageUseCase {
                 LocalDateTime.now()
         );
 
+        newSession.setPendingAction(ChatPendingAction.NONE);
+
         saveSessionPort.save(newSession);
         return newSession;
     }
@@ -277,5 +285,32 @@ public class SendMessageService implements SendMessageUseCase {
         if (!(auth.getDetails() instanceof JwtAuthenticationFilter.AuthDetails details))
             return null;
         return details.userId();
+    }
+
+    private String extractProductKeywordAI(String message, String sessionKey) {
+
+        String prompt = """
+                Extrae SOLO el nombre del producto mencionado en el siguiente texto.
+                No agregues explicaciones, no agregues frases extras.
+                Devuelve solo el nombre del producto tal como lo escribiría un usuario común.
+                Si no hay producto, responde exactamente: NONE.
+
+                Texto: "%s"
+                Respuesta:
+                """.formatted(message);
+
+        try {
+            ChatbotResponse result = internalPort.process(prompt, sessionKey);
+
+            if (result == null || result.getText() == null) return "NONE";
+
+            String cleaned = result.getText().trim().toLowerCase();
+
+            cleaned = cleaned.split("\n")[0].trim();
+
+            return cleaned;
+        } catch (Exception e) {
+            return "NONE";
+        }
     }
 }
