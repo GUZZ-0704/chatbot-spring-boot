@@ -4,6 +4,7 @@ import com.example.chatbothexagonal.chatbot.application.port.out.*;
 import com.example.chatbothexagonal.chatbot.domain.model.ChatMessage;
 import com.example.chatbothexagonal.chatbot.domain.model.ChatSession;
 import com.example.chatbothexagonal.chatbot.domain.valueobject.SessionId;
+import com.example.chatbothexagonal.chatbot.infraestructure.out.entity.ChatSessionEntity;
 import com.example.chatbothexagonal.chatbot.infraestructure.out.mapper.ChatbotEntityMapper;
 import com.example.chatbothexagonal.chatbot.infraestructure.out.repository.ChatMessageRepository;
 import com.example.chatbothexagonal.chatbot.infraestructure.out.repository.ChatSessionRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class ChatbotPersistenceAdapter implements
@@ -44,6 +46,16 @@ public class ChatbotPersistenceAdapter implements
 
     @Override
     public void deleteSessionsByUserId(Long userId) {
+        List<ChatSessionEntity> sessions = sessionRepo.findByUserId(userId);
+        if (sessions == null || sessions.isEmpty()) {
+            return;
+        }
+
+        List<UUID> sessionIds = sessions.stream()
+                .map(ChatSessionEntity::getId)
+                .toList();
+
+        messageRepo.deleteBySessionIdIn(sessionIds);
         sessionRepo.deleteByUserId(userId);
     }
 

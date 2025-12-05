@@ -32,11 +32,15 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/chatbot/**").permitAll()
-
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        
+                        // Auth endpoints (login, register)
+                        .requestMatchers("/api/auth/**").permitAll()
+                        
+                        // Chatbot endpoints (requieren autenticación)
+                        .requestMatchers("/api/chatbot/**").authenticated()
+                        .requestMatchers("/api/sessions/**").authenticated()
+                        
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -49,7 +53,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(List.of("http://localhost:4200"));
+        cfg.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:3000"));
         cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
         cfg.addAllowedHeader("*");
         cfg.setAllowCredentials(true);
