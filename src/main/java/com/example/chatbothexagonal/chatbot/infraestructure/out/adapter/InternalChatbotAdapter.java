@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.Map;
 @Component
 public class InternalChatbotAdapter implements ChatbotInternalPort {
 
+    private static final Logger log = LoggerFactory.getLogger(InternalChatbotAdapter.class);
     private final RestTemplate rest = new RestTemplate();
     private final LoadSessionPort loadSessionPort;
     private final LoadHistoryPort loadHistoryPort;
@@ -66,26 +69,73 @@ public class InternalChatbotAdapter implements ChatbotInternalPort {
         ResponseEntity<Map> response;
 
         try {
+            log.info("Enviando petición a Gemini: {}", apiUrl);
+            log.debug("Payload: {}", payload);
             response = rest.exchange(apiUrl, HttpMethod.POST, entity, Map.class);
+            log.info("Respuesta de Gemini recibida. Status: {}", response.getStatusCode());
+            log.debug("Body: {}", response.getBody());
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
 
+        String extractedText = extractAIResponse(response.getBody());
+        log.info("Texto extraído: {}", extractedText);
+        
         return new ChatbotResponse(
-                extractAIResponse(response.getBody()),
+                extractedText,
                 response.getBody().toString()
         );
     }
 
     private String extractAIResponse(Map body) {
         try {
+            // Validar que exista candidates
+            if (body == null || !body.containsKey("candidates")) {
+                return "La respuesta del modelo no contiene candidatos.";
+            }
+
             List<Map> candidates = (List<Map>) body.get("candidates");
-            Map content = (Map) candidates.get(0).get("content");
+            if (candidates == null || candidates.isEmpty()) {
+                return "La lista de candidatos está vacía.";
+            }
+
+            Map candidate = candidates.get(0);
+            if (candidate == null || !candidate.containsKey("content")) {
+                return "El candidato no contiene contenido.";
+            }
+
+            Map content = (Map) candidate.get("content");
+            if (content == null || !content.containsKey("parts")) {
+                return "El contenido no tiene partes (parts).";
+            }
+
             List<Map> parts = (List<Map>) content.get("parts");
-            return parts.get(0).get("text").toString();
+            if (parts == null || parts.isEmpty()) {
+                return "La lista de partes está vacía.";
+            }
+
+            Map firstPart = parts.get(0);
+            if (firstPart == null || !firstPart.containsKey("text")) {
+                return "La primera parte no contiene texto.";
+            }
+
+            Object textObj = firstPart.get("text");
+            if (textObj == null) {
+                return "El texto es nulo.";
+            }
+
+            String text = textObj.toString().trim();
+            if (text.isEmpty()) {
+                return "El texto está vacío.";
+            }
+
+            return text;
+
+        } catch (ClassCastException e) {
+            return "Error de tipo al parsear la respuesta: " + e.getMessage();
         } catch (Exception e) {
-            return "No pude interpretar la respuesta del modelo.";
+            return "Error inesperado al interpretar la respuesta: " + e.getMessage();
         }
     }
 }
