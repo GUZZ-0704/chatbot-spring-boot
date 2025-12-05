@@ -14,17 +14,24 @@ public class ChatSession {
     private ChatbotModel activeModel;
     private final LocalDateTime createdAt;
 
-    public ChatSession(SessionId id,
-                       Long userId,
-                       String sessionKey,
-                       ChatbotModel activeModel,
-                       LocalDateTime createdAt) {
+    private ChatPendingAction pendingAction;
+    private String pendingProductId;
+    private String pendingFromBranchId;
 
-        this.id = Objects.requireNonNull(id);
+    public ChatSession(
+            SessionId id,
+            Long userId,
+            String sessionKey,
+            ChatbotModel activeModel,
+            LocalDateTime createdAt
+    ) {
+        this.id = id;
         this.userId = userId;
-        this.sessionKey = validateSessionKey(sessionKey);
+        this.sessionKey = sessionKey;
         this.activeModel = activeModel == null ? ChatbotModel.UNKNOWN : activeModel;
         this.createdAt = Objects.requireNonNull(createdAt);
+
+        this.pendingAction = ChatPendingAction.NONE;
     }
 
     private String validateSessionKey(String key) {
@@ -57,6 +64,28 @@ public class ChatSession {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public ChatPendingAction getPendingAction() { return pendingAction; }
+    public String getPendingProductId() { return pendingProductId; }
+    public String getPendingFromBranchId() { return pendingFromBranchId; }
+
+    public void setPendingAction(ChatPendingAction action) {
+        this.pendingAction = action;
+    }
+
+    public void setPendingProductId(String id) {
+        this.pendingProductId = id;
+    }
+
+    public void setPendingFromBranchId(String id) {
+        this.pendingFromBranchId = id;
+    }
+
+    public void clearPending() {
+        this.pendingAction = ChatPendingAction.NONE;
+        this.pendingProductId = null;
+        this.pendingFromBranchId = null;
     }
 
 }

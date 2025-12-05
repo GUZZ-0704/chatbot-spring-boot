@@ -7,8 +7,6 @@ import com.example.chatbothexagonal.chatbot.domain.model.ChatMessage;
 import com.example.chatbothexagonal.chatbot.domain.model.ChatSession;
 import com.example.chatbothexagonal.chatbot.domain.model.ChatbotResponse;
 import com.example.chatbothexagonal.chatbot.domain.model.MessageRole;
-import com.example.chatbothexagonal.product.application.port.out.LoadProductsPort;
-import com.example.chatbothexagonal.product.domain.model.Product;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -27,19 +25,16 @@ public class InternalChatbotAdapter implements ChatbotInternalPort {
     private final RestTemplate rest = new RestTemplate();
     private final LoadSessionPort loadSessionPort;
     private final LoadHistoryPort loadHistoryPort;
-    private final LoadProductsPort loadProductsPort;
 
     @Value("${gemini.url}")
     private String apiUrl;
 
     public InternalChatbotAdapter(
             LoadSessionPort loadSessionPort,
-            LoadHistoryPort loadHistoryPort,
-            LoadProductsPort loadProductsPort
+            LoadHistoryPort loadHistoryPort
     ) {
         this.loadSessionPort = loadSessionPort;
         this.loadHistoryPort = loadHistoryPort;
-        this.loadProductsPort = loadProductsPort;
     }
 
     @Override
@@ -49,14 +44,7 @@ public class InternalChatbotAdapter implements ChatbotInternalPort {
                 .orElseThrow(() -> new RuntimeException("Session not found: " + sessionKey));
 
         List<ChatMessage> history = loadHistoryPort.loadBySessionId(session.getId());
-        List<Product> products = loadProductsPort.loadAll();
-
         List<Map<String, Object>> contents = new ArrayList<>();
-
-        contents.add(Map.of(
-                "role", "model",
-                "parts", List.of(Map.of("text", buildProductKnowledge(products)))
-        ));
 
         for (ChatMessage msg : history) {
             if (msg.getMessageText() == null) continue;
@@ -76,7 +64,6 @@ public class InternalChatbotAdapter implements ChatbotInternalPort {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
         ResponseEntity<Map> response;
@@ -88,11 +75,8 @@ public class InternalChatbotAdapter implements ChatbotInternalPort {
             log.info("Respuesta de Gemini recibida. Status: {}", response.getStatusCode());
             log.debug("Body: {}", response.getBody());
         } catch (Exception e) {
-            log.error("Error al conectar con Gemini", e);
-            return new ChatbotResponse(
-                    "Ocurrió un error al conectar con Gemini: " + e.getMessage(),
-                    "{\"error\": \"" + e.getMessage() + "\"}"
-            );
+            e.printStackTrace();
+            return null;
         }
 
         String extractedText = extractAIResponse(response.getBody());
@@ -102,28 +86,6 @@ public class InternalChatbotAdapter implements ChatbotInternalPort {
                 extractedText,
                 response.getBody().toString()
         );
-    }
-
-    private String buildProductKnowledge(List<Product> products) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Eres un asistente virtual amigable y útil. ");
-        sb.append("Tu trabajo es ayudar a los usuarios con información sobre productos y responder sus preguntas de manera clara y concisa.\n\n");
-        
-        if (products != null && !products.isEmpty()) {
-            sb.append("Estos son los productos disponibles:\n");
-            for (Product p : products) {
-                sb.append(String.format("- %s | Precio: $%.2f\n", p.getName(), p.getPrice()));
-            }
-            sb.append("\n");
-        } else {
-            sb.append("Actualmente no hay productos disponibles en el catálogo.\n\n");
-        }
-        
-        sb.append("Responde siempre de manera amigable y profesional. ");
-        sb.append("Si te preguntan por un producto que no está en la lista, indícalo amablemente.");
-        
-        log.debug("Contexto de productos construido: {} productos", products != null ? products.size() : 0);
-        return sb.toString();
     }
 
     private String extractAIResponse(Map body) {
