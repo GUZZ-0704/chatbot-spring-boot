@@ -17,6 +17,10 @@ public class ChatMessageRequestDTO {
     @MinWords(1)
     private String messageText;
 
+    @NotBlank
+    private String branchId;
+
     public String getSessionKey() { return sessionKey; }
     public String getMessageText() { return messageText; }
+    public String getBranchId() { return branchId; }
 }

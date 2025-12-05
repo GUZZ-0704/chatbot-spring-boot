@@ -7,8 +7,6 @@ import com.example.chatbothexagonal.chatbot.domain.model.ChatMessage;
 import com.example.chatbothexagonal.chatbot.domain.model.ChatSession;
 import com.example.chatbothexagonal.chatbot.domain.model.ChatbotResponse;
 import com.example.chatbothexagonal.chatbot.domain.model.MessageRole;
-import com.example.chatbothexagonal.product.application.port.out.LoadProductsPort;
-import com.example.chatbothexagonal.product.domain.model.Product;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -24,19 +22,16 @@ public class InternalChatbotAdapter implements ChatbotInternalPort {
     private final RestTemplate rest = new RestTemplate();
     private final LoadSessionPort loadSessionPort;
     private final LoadHistoryPort loadHistoryPort;
-    private final LoadProductsPort loadProductsPort;
 
     @Value("${gemini.url}")
     private String apiUrl;
 
     public InternalChatbotAdapter(
             LoadSessionPort loadSessionPort,
-            LoadHistoryPort loadHistoryPort,
-            LoadProductsPort loadProductsPort
+            LoadHistoryPort loadHistoryPort
     ) {
         this.loadSessionPort = loadSessionPort;
         this.loadHistoryPort = loadHistoryPort;
-        this.loadProductsPort = loadProductsPort;
     }
 
     @Override
@@ -46,14 +41,7 @@ public class InternalChatbotAdapter implements ChatbotInternalPort {
                 .orElseThrow(() -> new RuntimeException("Session not found: " + sessionKey));
 
         List<ChatMessage> history = loadHistoryPort.loadBySessionId(session.getId());
-        List<Product> products = loadProductsPort.loadAll();
-
         List<Map<String, Object>> contents = new ArrayList<>();
-
-        contents.add(Map.of(
-                "role", "model",
-                "parts", List.of(Map.of("text", buildProductKnowledge(products)))
-        ));
 
         for (ChatMessage msg : history) {
             if (msg.getMessageText() == null) continue;
@@ -73,7 +61,6 @@ public class InternalChatbotAdapter implements ChatbotInternalPort {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
         ResponseEntity<Map> response;
@@ -82,27 +69,13 @@ public class InternalChatbotAdapter implements ChatbotInternalPort {
             response = rest.exchange(apiUrl, HttpMethod.POST, entity, Map.class);
         } catch (Exception e) {
             e.printStackTrace();
-            return new ChatbotResponse(
-                    "Ocurrió un error al conectar con Gemini: " + e.getMessage(),
-                    "{\"error\": \"" + e.getMessage() + "\"}"
-            );
+            return null;
         }
 
         return new ChatbotResponse(
                 extractAIResponse(response.getBody()),
                 response.getBody().toString()
         );
-    }
-
-    private String buildProductKnowledge(List<Product> products) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Eres un experto en productos. Usa únicamente la siguiente lista:\n");
-
-        for (Product p : products) {
-            sb.append(String.format("- %s | Precio: %.2f\n", p.getName(), p.getPrice()));
-        }
-
-        return sb.toString();
     }
 
     private String extractAIResponse(Map body) {
